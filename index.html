@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Culture Recall Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+html{color-scheme:light}body{margin:0}img{max-width:100%}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+/* Layout: one study column; header with a diffusion-rings mark and session tally; six recall modes as tabs */
+:root{
+  --bg:#EEF0F6; --surface:#FFFFFF; --sunk:#F5F6FA; --ink:#171B2B; --muted:#596079; --line:#D5D9E5;
+  --accent:#3346A6; --accent-soft:#E2E6F7; --accent-ink:#FFFFFF; --warm:#B07A0C; --warm-soft:#F6EBD2;
+  --good:#22713A; --good-soft:#E1F1E5; --bad:#B42318; --bad-soft:#FBE4E1;
+  --display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue","Segoe UI",Roboto,sans-serif;
+  --body:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","Segoe UI",Roboto,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10121B; --surface:#181B28; --sunk:#131620; --ink:#E5E7F0; --muted:#9AA0B8; --line:#2A2F43;
+  --accent:#93A3F2; --accent-soft:#1E2544; --accent-ink:#0C1026; --warm:#E3B54B; --warm-soft:#3A2F14;
+  --good:#63C27A; --good-soft:#163222; --bad:#F2776C; --bad-soft:#3D1C1A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10121B; --surface:#181B28; --sunk:#131620; --ink:#E5E7F0; --muted:#9AA0B8; --line:#2A2F43;
+  --accent:#93A3F2; --accent-soft:#1E2544; --accent-ink:#0C1026; --warm:#E3B54B; --warm-soft:#3A2F14;
+  --good:#63C27A; --good-soft:#163222; --bad:#F2776C; --bad-soft:#3D1C1A; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5}
+.wrap{max-width:780px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{padding-block:28px 18px}
+.head{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between}
+.brand{display:flex;gap:14px;align-items:center;min-width:0}
+.brand svg{flex:none;width:50px;height:50px}
+.eyebrow{margin:0;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{margin:2px 0 0;font-family:var(--display);font-weight:800;letter-spacing:-.025em;font-size:clamp(28px,6vw,38px);line-height:1.05}
+.tally{font-family:var(--mono);font-size:13px;color:var(--muted);text-align:right}
+.tally b{display:block;font-size:26px;color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+nav.tabs{display:flex;gap:4px;padding:4px;background:var(--sunk);border:1px solid var(--line);border-radius:12px;overflow-x:auto}
+nav.tabs button{flex:1 0 auto;border:0;background:transparent;color:var(--muted);font:600 15px var(--body);padding:10px 14px;border-radius:9px;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+main{padding-block:16px 48px;display:grid;gap:14px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font:600 14px var(--body);padding:6px 12px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.count{font-family:var(--mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px clamp(16px,4vw,28px);display:grid;gap:14px;min-width:0}
+.label{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:0}
+.prompt{margin:0;font-size:clamp(19px,3.4vw,23px);line-height:1.4;font-weight:600;text-wrap:pretty}
+.prompt.term{font-family:var(--display);font-weight:800;letter-spacing:-.02em;font-size:clamp(28px,5.5vw,36px)}
+input[type=text],textarea{width:100%;font:inherit;color:var(--ink);background:var(--sunk);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px}
+textarea{min-height:150px;resize:vertical;line-height:1.45}
+input:focus,textarea:focus{outline:none;border-color:var(--accent)}
+input.ok{border-color:var(--good);background:var(--good-soft)} input.no{border-color:var(--bad);background:var(--bad-soft)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font:600 15px var(--body);padding:9px 16px;border-radius:10px;cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.good{border-color:var(--good);color:var(--good)} .btn.bad{border-color:var(--bad);color:var(--bad)}
+.btn.ghost{border-color:transparent;color:var(--muted);padding-inline:8px}
+button:focus-visible,.chip:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px}
+.kbd{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.tip{font-size:14px;color:var(--muted);margin:0}
+.big{font-family:var(--display);font-weight:800;letter-spacing:-.03em;font-size:54px;line-height:1;margin:0}
+.missed{display:flex;flex-wrap:wrap;gap:6px}
+.missed span{background:var(--bad-soft);color:var(--bad);border-radius:6px;padding:3px 9px;font-size:14px;font-weight:600}
+.mc{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (max-width:480px){.mc{grid-template-columns:minmax(0,1fr)}}
+.opt{display:flex;gap:10px;align-items:center;text-align:left;border:1.5px solid var(--line);background:var(--sunk);color:var(--ink);font:600 15px var(--body);padding:11px 13px;border-radius:10px;cursor:pointer;min-width:0}
+.opt span:last-child{min-width:0;overflow-wrap:anywhere}
+.opt:hover:not([disabled]){border-color:var(--accent);background:var(--accent-soft)}
+.opt .k{flex:none;width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font:600 12px var(--mono);color:var(--muted);border:1px solid var(--line);background:var(--surface)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)} .opt.dim{opacity:.55}
+.opt[disabled]{cursor:default}
+.fb{border-radius:10px;padding:12px 14px;display:grid;gap:5px}
+.fb.ok{background:var(--good-soft)} .fb.no{background:var(--bad-soft)} .fb.info{background:var(--accent-soft)}
+.fb strong{font-size:15px}
+.fb.ok strong{color:var(--good)} .fb.no strong{color:var(--bad)} .fb.info strong{color:var(--accent)}
+.fb p{margin:0}
+.answer{font-family:var(--display);font-weight:800;font-size:21px;letter-spacing:-.01em}
+ul.check{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+ul.check label{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border:1px solid var(--line);border-radius:9px;cursor:pointer;background:var(--sunk)}
+ul.check input{margin-top:4px;accent-color:var(--accent);width:17px;height:17px;flex:none}
+ul.check label.on{border-color:var(--good);background:var(--good-soft)}
+.auto{font-family:var(--mono);font-size:11px;color:var(--good);margin-left:auto;white-space:nowrap;padding-left:8px}
+details.sheet{background:var(--surface);border:1px solid var(--line);border-radius:14px}
+details.sheet summary{cursor:pointer;padding:14px 18px;font-weight:700;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px}
+details.sheet summary::-webkit-details-marker{display:none}
+details.sheet summary::after{content:"Show";font-family:var(--mono);font-size:12px;color:var(--accent)}
+details.sheet[open] summary::after{content:"Hide"}
+.sheet-body{border-top:1px solid var(--line);padding:4px clamp(14px,3vw,22px) 12px}
+.sheet-body h4{margin:16px 0 4px;font-size:13px;font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--accent)}
+.def{display:grid;grid-template-columns:minmax(0,11em) minmax(0,1fr);gap:4px 14px;padding:7px 0;border-top:1px solid var(--line);font-size:15px}
+@media (max-width:480px){.def{grid-template-columns:minmax(0,1fr)}}
+.tbl{overflow-x:auto}
+.tbl table{border-collapse:collapse;width:100%;font-size:14px;min-width:600px}
+.tbl th,.tbl td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.tbl th{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.tbl td:first-child{font-weight:700}
+@media (prefers-reduced-motion:no-preference){.fb{animation:pop .18s ease-out}@keyframes pop{from{transform:translateY(3px);opacity:.4}to{transform:none;opacity:1}}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap head">
+    <div class="brand">
+      <svg viewBox="0 0 50 50" aria-hidden="true">
+        <circle cx="25" cy="25" r="22" fill="none" stroke="var(--line)" stroke-width="2"/>
+        <circle cx="25" cy="25" r="15" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="4 3" opacity=".7"/>
+        <circle cx="25" cy="25" r="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+        <circle cx="25" cy="25" r="3.2" fill="var(--warm)"/>
+        <circle cx="42" cy="12" r="3" fill="var(--warm)" opacity=".85"/><circle cx="9" cy="38" r="2.4" fill="var(--warm)" opacity=".7"/>
+      </svg>
+      <div>
+        <p class="eyebrow">AP Human Geography · Unit 3</p>
+        <h1>Culture Recall Lab</h1>
+      </div>
+    </div>
+    <div class="tally"><b id="tally">0 / 0</b>correct this session</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="tabs" role="tablist" aria-label="Study modes">
+    <button role="tab" id="tab-mc" data-tab="mc" aria-selected="true">Multiple choice</button>
+    <button role="tab" id="tab-vocab" data-tab="vocab" aria-selected="false">Vocab</button>
+    <button role="tab" id="tab-cls" data-tab="cls" aria-selected="false">Classify it</button>
+    <button role="tab" id="tab-rl" data-tab="rl" aria-selected="false">Religions &amp; languages</button>
+    <button role="tab" id="tab-exp" data-tab="exp" aria-selected="false">Explain it</button>
+  </nav>
+</div>
+
+<main class="wrap">
+  <details class="sheet"><summary>Study sheet</summary><div class="sheet-body" id="sheet-body"></div></details>
+  <section id="pane-mc" role="tabpanel" aria-labelledby="tab-mc"><div class="bar"><div class="chips" id="mc-filter"></div><span class="count" id="mc-count"></span></div><div id="mc-card"></div></section>
+  <section id="pane-vocab" role="tabpanel" aria-labelledby="tab-vocab" hidden><div class="bar"><div class="chips" id="vocab-filter"></div><div class="chips" id="vocab-dir"></div></div><div id="vocab-card"></div></section>
+  <section id="pane-cls" role="tabpanel" aria-labelledby="tab-cls" hidden><div class="bar"><div class="chips" id="cls-filter"></div><span class="count" id="cls-count"></span></div><div id="cls-card"></div></section>
+  <section id="pane-rl" role="tabpanel" aria-labelledby="tab-rl" hidden><div class="bar"><div class="chips" id="rl-filter"></div><span class="count" id="rl-count"></span></div><div id="rl-card"></div></section>
+  <section id="pane-exp" role="tabpanel" aria-labelledby="tab-exp" hidden><div class="bar"><div class="chips" id="exp-chips"></div></div><div id="exp-card"></div></section>
+</main>
+
+<script>
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const store={get(k,d){try{const v=localStorage.getItem('u3:'+k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem('u3:'+k,JSON.stringify(v));}catch(e){}}};
+const norm=s=>String(s).toLowerCase().replace(/[’']/g,'').replace(/[^a-z0-9]+/g,' ').trim().replace(/^(the|a|an) /,'');
+function lev(a,b){const m=a.length,n=b.length;if(!m)return n;if(!n)return m;let p=Array.from({length:n+1},(_,i)=>i);for(let i=1;i<=m;i++){const c=[i];for(let j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c;}return p[n];}
+function matches(input,aliases){const n=norm(input);if(!n)return false;return aliases.some(a=>{const b=norm(a);if(n===b)return true;const tol=b.length>=10?2:(b.length>=5?1:0);return lev(n,b)<=tol;});}
+let tally={right:0,total:0};
+function score(ok){tally.total++;if(ok)tally.right++;$('#tally').textContent=tally.right+' / '+tally.total;}
+const missMap=()=>store.get('miss',{});
+function bump(k,d){const m=missMap();m[k]=Math.max(0,(m[k]||0)+d);store.set('miss',m);}
+function filterChips(id,opts,key,onChange){let cur=store.get(key,Object.keys(opts)[0]);if(!opts[cur])cur=Object.keys(opts)[0];
+  const draw=()=>{$('#'+id).innerHTML=Object.entries(opts).map(([k,l])=>`<button class="chip" data-k="${k}" aria-pressed="${cur===k}">${l}</button>`).join('');
+    document.querySelectorAll('#'+id+' .chip').forEach(c=>c.onclick=()=>{cur=c.dataset.k;store.set(key,cur);draw();onChange();});};
+  draw();return()=>cur;}
+
+/* ---------- vocabulary ---------- */
+// term | definition | aliases | group (cul = culture & landscape, dif = diffusion, eff = effects & language contact, rel = religion & language)
+const TERMS=[
+ ['Culture','The shared beliefs, practices, values, and material things of a group, passed down from generation to generation.',[],'cul'],
+ ['Cultural traits','Single elements of a culture, like food, clothing, music, language, or religion.',['cultural trait','trait'],'cul'],
+ ['Cultural relativism','Understanding and judging a culture by its own standards instead of your own.',['relativism'],'cul'],
+ ['Ethnocentrism','Judging other cultures by the standards of your own and seeing your own culture as superior.',['ethnocentric'],'cul'],
+ ['Folk culture','The traditional culture of small, rural, close-knit groups. It changes slowly and spreads mostly by relocation diffusion.',['folk'],'cul'],
+ ['Popular culture','The culture of large, diverse societies. It changes quickly and spreads fast, often by hierarchical diffusion through media.',['pop culture','popular'],'cul'],
+ ['Cultural landscape','The visible imprint of human activity and culture on the land, like buildings, farms, signs, and monuments.',['built environment'],'cul'],
+ ['Sequent occupance','The idea that each group that lives in a place leaves its own cultural imprint, building up layers over time.',[],'cul'],
+ ['Sacred space','A place a religion considers holy, like Mecca, Jerusalem, or the Ganges River.',['sacred site','sacred place'],'cul'],
+ ['Sense of place','The feelings and meanings people attach to a place based on their experiences there.',[],'cul'],
+ ['Placemaking','Shaping public spaces so they reflect a community’s identity and bring people together.',['place making'],'cul'],
+ ['Placelessness','When places lose their uniqueness and start to look the same everywhere, like the same chain stores in every town.',[],'cul'],
+ ['Traditional architecture','Buildings that use local materials and styles, reflecting the folk culture of a place.',['vernacular architecture','traditional'],'cul'],
+ ['Postmodern architecture','A modern style that mixes older design elements with new materials. It’s common in global cities and makes skylines look similar.',['postmodern'],'cul'],
+ ['Ethnicity','Identity with a group that shares ancestry and cultural traits like language and religion.',['ethnic group'],'cul'],
+ ['Ethnic enclave','A neighborhood with a high concentration of one ethnic group, like a Chinatown or Little Italy.',['ethnic neighborhood','enclave'],'cul'],
+ ['Cultural diffusion','The spread of cultural traits from one place to another.',['diffusion'],'dif'],
+ ['Hearth','The place where a cultural trait or idea first started.',['cultural hearth'],'dif'],
+ ['Relocation diffusion','Spread through the physical movement of people who bring a trait with them to a new place.',['relocation'],'dif'],
+ ['Expansion diffusion','Spread outward from a hearth while the trait stays strong where it started.',['expansion'],'dif'],
+ ['Hierarchical diffusion','Spread from powerful or important people and places (big cities, celebrities) down to others.',['hierarchical'],'dif'],
+ ['Reverse hierarchical diffusion','Spread that starts with ordinary people or small places and moves up to bigger or more powerful ones.',['reverse hierarchical'],'dif'],
+ ['Contagious diffusion','Fast spread from person to person to everyone nearby, like a disease or a viral video.',['contagious'],'dif'],
+ ['Stimulus diffusion','The basic idea spreads, but people change it to fit their own culture.',['stimulus'],'dif'],
+ ['Colonialism','When a country takes control of another territory and settles it, spreading its language, religion, and customs.',['colonization'],'dif'],
+ ['Imperialism','When a country extends its power and control over other areas, politically or economically, without necessarily settling there.',['imperial'],'dif'],
+ ['Diaspora','The scattering of a group of people away from their homeland, like the Jewish or African diaspora.',['diasporas'],'dif'],
+ ['Globalization','The growing connection of the world’s economies, cultures, and people.',[],'dif'],
+ ['Time-space compression','The shrinking time it takes for people, goods, and ideas to travel, so the world feels smaller.',['time space compression','space time compression'],'dif'],
+ ['Cultural convergence','When cultures become more alike through contact with each other.',['convergence'],'eff'],
+ ['Cultural divergence','When cultures become more different or separate from each other.',['divergence'],'eff'],
+ ['Acculturation','When a group adopts some traits of another culture but keeps its own culture too.',[],'eff'],
+ ['Assimilation','When a group fully adopts the dominant culture and loses its original cultural traits.',['assimilate'],'eff'],
+ ['Syncretism','When two cultures blend to create a new cultural trait, like Day of the Dead.',['cultural syncretism','syncretic'],'eff'],
+ ['Multiculturalism','When many cultures exist side by side in one society and keep their own identities.',['multicultural'],'eff'],
+ ['Lingua franca','A shared language used for trade and communication between people with different native languages, like English today.',[],'eff'],
+ ['Pidgin','A simplified mix of two or more languages used for trade, with no native speakers.',['pidgin language'],'eff'],
+ ['Creole','A pidgin that becomes the native language of a group, like Haitian Creole.',['creole language'],'eff'],
+ ['Creolization','The blending of different cultures or languages into a new one.',[],'eff'],
+ ['Language family','A group of languages that share a common ancestor from before recorded history, like Indo-European.',['family'],'rel'],
+ ['Language branch','Languages within a family that share a more recent common origin, like Germanic or Romance.',['branch'],'rel'],
+ ['Language group','Languages within a branch that share a recent origin and similar grammar and vocabulary, like West Germanic.',['group'],'rel'],
+ ['Dialect','A regional variety of a language with its own accent, words, or grammar.',['dialects'],'rel'],
+ ['Isolated language','A language that isn’t related to any other language, like Basque.',['language isolate','isolate'],'rel'],
+ ['Toponym','The name given to a place.',['toponyms','place name'],'rel'],
+ ['Universalizing religion','A religion that tries to appeal to everyone and actively seeks converts, like Christianity, Islam, Buddhism, and Sikhism.',['universalizing'],'rel'],
+ ['Ethnic religion','A religion tied to one group of people or place that doesn’t actively seek converts, like Hinduism and Judaism.',['ethnic'],'rel'],
+ ['Secularism','The idea that religion should not play a role in government or public life, or a decline in religious belief.',['secular'],'rel'],
+].map(([t,d,a,g])=>({t,d,a:[t,...a],g}));
+const byT=Object.fromEntries(TERMS.map(x=>[x.t,x]));
+
+/* ---------- religions & languages ---------- */
+const RELIGIONS=[
+ {n:'Christianity',type:'Universalizing',hearth:'The Levant (Jerusalem / Bethlehem)',hA:['levant','jerusalem','bethlehem','israel','palestine','middle east','southwest asia'],
+  spread:'Missionaries (relocation) and Roman Emperor Constantine (hierarchical)',branches:'Roman Catholic, Protestant, Eastern Orthodox',bA:['catholic','protestant','orthodox'],holy:'Jerusalem, Rome (Vatican City)',size:'Largest religion (about 2.4 billion)'},
+ {n:'Islam',type:'Universalizing',hearth:'Arabian Peninsula (Mecca)',hA:['mecca','arabian peninsula','arabia','saudi arabia','makkah'],
+  spread:'Trade routes and military conquest, then missionaries',branches:'Sunni (most), Shia',bA:['sunni','shia','shiite','shi a'],holy:'Mecca, Medina, Jerusalem (Dome of the Rock)',size:'Second largest, fastest growing'},
+ {n:'Buddhism',type:'Universalizing',hearth:'Northeast India / Nepal (Bodh Gaya)',hA:['india','nepal','bodh gaya','northern india','northeast india','lumbini','south asia'],
+  spread:'Missionaries and the Silk Road, helped by Emperor Ashoka (hierarchical)',branches:'Theravada, Mahayana, Vajrayana',bA:['theravada','mahayana','vajrayana'],holy:'Bodh Gaya (where the Buddha found enlightenment)',size:'Mostly East and Southeast Asia'},
+ {n:'Sikhism',type:'Universalizing',hearth:'Punjab region (India / Pakistan)',hA:['punjab','india','pakistan','south asia'],
+  spread:'Mostly relocation through migration (diaspora)',branches:'Founded by Guru Nanak',bA:['guru nanak'],holy:'Golden Temple in Amritsar',size:'About 25–30 million, mostly in Punjab'},
+ {n:'Hinduism',type:'Ethnic',hearth:'Indus River Valley (South Asia)',hA:['indus','indus river valley','india','south asia','indus valley'],
+  spread:'Mostly stayed in South Asia; spread by relocation with Indian migrants',branches:'Many gods; caste system historically tied to it',bA:['vishnu','shiva','brahman','many gods','polytheistic'],holy:'Ganges River, Varanasi',size:'Third largest, mostly in India and Nepal'},
+ {n:'Judaism',type:'Ethnic',hearth:'The Levant (Jerusalem)',hA:['levant','jerusalem','israel','middle east','southwest asia','palestine'],
+  spread:'Relocation through the Jewish diaspora',branches:'Orthodox, Conservative, Reform',bA:['orthodox','conservative','reform'],holy:'Jerusalem (Western Wall)',size:'One of the first monotheistic religions'},
+ {n:'Shinto',type:'Ethnic',hearth:'Japan',hA:['japan'],spread:'Stayed in Japan',branches:'Worship of kami (nature spirits)',bA:['kami'],holy:'Shrines across Japan',size:'Almost all in Japan'},
+];
+const LANGS=[
+ ['English','Indo-European','Germanic'],['German','Indo-European','Germanic'],['Dutch','Indo-European','Germanic'],['Swedish','Indo-European','Germanic'],
+ ['Spanish','Indo-European','Romance'],['French','Indo-European','Romance'],['Italian','Indo-European','Romance'],['Portuguese','Indo-European','Romance'],['Romanian','Indo-European','Romance'],
+ ['Russian','Indo-European','Balto-Slavic'],['Polish','Indo-European','Balto-Slavic'],['Ukrainian','Indo-European','Balto-Slavic'],
+ ['Hindi','Indo-European','Indo-Iranian'],['Bengali','Indo-European','Indo-Iranian'],['Persian (Farsi)','Indo-European','Indo-Iranian'],['Urdu','Indo-European','Indo-Iranian'],
+ ['Mandarin Chinese','Sino-Tibetan',null],['Cantonese','Sino-Tibetan',null],['Arabic','Afro-Asiatic',null],['Hebrew','Afro-Asiatic',null],
+ ['Swahili','Niger-Congo',null],['Yoruba','Niger-Congo',null],['Indonesian','Austronesian',null],['Tagalog','Austronesian',null],['Malay','Austronesian',null],
+ ['Finnish','Uralic',null],['Hungarian','Uralic',null],['Tamil','Dravidian',null],['Turkish','Altaic (Turkic)',null],['Basque','Isolated language',null],
+];
+const FAM_A={'Indo-European':['indo european'],'Sino-Tibetan':['sino tibetan'],'Afro-Asiatic':['afro asiatic','afroasiatic'],'Niger-Congo':['niger congo'],'Austronesian':['austronesian'],'Uralic':['uralic'],'Dravidian':['dravidian'],'Altaic (Turkic)':['altaic','turkic'],'Isolated language':['isolate','isolated','language isolate','none','isolated language']};
+const BR_A={'Germanic':['germanic'],'Romance':['romance','latin','italic'],'Balto-Slavic':['balto slavic','slavic','baltic'],'Indo-Iranian':['indo iranian','indic','iranian','indo aryan']};
+
+/* ---------- classify scenarios ---------- */
+const CLS={
+ dif:{name:'Type of diffusion',opts:['Relocation','Hierarchical','Reverse hierarchical','Contagious','Stimulus'],items:[
+  ['Irish immigrants bring St. Patrick’s Day traditions to Boston.','Relocation','People physically moved and brought the trait with them.'],
+  ['A fashion trend starts in Paris and New York, then shows up in smaller cities a year later.','Hierarchical','It spread from the most important places down to smaller ones.'],
+  ['A dance video goes viral, spreading from user to user across social media.','Contagious','It spread quickly person to person to everyone nearby, not top-down.'],
+  ['McDonald’s in India sells the McAloo Tikki potato burger instead of beef burgers.','Stimulus','The fast-food idea spread, but it was changed to fit local culture (many Hindus don’t eat beef).'],
+  ['Walmart started in small rural towns and later moved into big cities.','Reverse hierarchical','It went from small places up to bigger, more powerful ones.'],
+  ['The flu spreads through a school as students infect each other.','Contagious','Person to person to everyone nearby.'],
+  ['Christianity spread through the Roman Empire after Emperor Constantine converted.','Hierarchical','A powerful leader adopted it first, then it spread down to the people.'],
+  ['Enslaved Africans brought their religious practices to the Caribbean.','Relocation','People were moved (by force) and carried their culture with them.'],
+  ['Hip-hop started in poor neighborhoods in the Bronx and was later adopted by mainstream celebrities and brands.','Reverse hierarchical','It started at the bottom of the social hierarchy and moved up.'],
+  ['Sequoyah created a writing system for the Cherokee language after seeing English writing.','Stimulus','The idea of writing spread, but he made a new system for his own language.'],
+  ['Smartphones first spread to wealthy people in big cities before reaching rural areas.','Hierarchical','New technology usually reaches rich people and big cities first.'],
+  ['Chinese immigrants opened restaurants in San Francisco during the Gold Rush.','Relocation','The immigrants brought their food with them when they moved.'],
+  ['Starbucks in Japan sells matcha and sakura lattes.','Stimulus','The coffee shop idea spread, but the menu changed to fit local tastes.'],
+  ['Missionaries traveled to South America to spread Christianity.','Relocation','The missionaries physically moved and brought the religion.'],
+  ['A slang word spreads through a high school until everyone is saying it.','Contagious','Person to person to everyone nearby.'],
+  ['Indian immigrants build Hindu temples in New Jersey.','Relocation','Migrants brought their religion to a new place.'],
+ ]},
+ eff:{name:'Effect of contact',opts:['Acculturation','Assimilation','Syncretism','Multiculturalism'],items:[
+  ['A Mexican-American family speaks English at work but Spanish at home and still celebrates Día de los Muertos.','Acculturation','They adopted some of the new culture but kept their own.'],
+  ['The grandchildren of Italian immigrants speak only English and no longer follow any Italian traditions.','Assimilation','The original culture was fully replaced by the dominant one.'],
+  ['Santería blends West African Yoruba beliefs with Catholic saints.','Syncretism','Two cultures blended into something new.'],
+  ['Toronto has neighborhoods where many cultures keep their own languages, foods, and festivals side by side.','Multiculturalism','Many cultures coexist and keep their identities.'],
+  ['Day of the Dead combines Aztec traditions with the Catholic All Saints’ Day.','Syncretism','Two cultures blended into a new tradition.'],
+  ['Native American children in boarding schools were forced to speak only English and give up their traditions.','Assimilation','The goal was to fully replace their culture with the dominant one.'],
+  ['Korean immigrants in Los Angeles learn English and American customs but still attend Korean churches and cook Korean food.','Acculturation','They took on some new traits while keeping their own.'],
+  ['Tex-Mex food mixes Mexican cooking with ingredients and styles from the United States.','Syncretism','Two food cultures blended into something new.'],
+  ['Singapore has four official languages and celebrates Chinese, Malay, Indian, and Western holidays.','Multiculturalism','Several cultures coexist and keep their identities.'],
+ ]},
+ lang:{name:'Language contact',opts:['Lingua franca','Pidgin','Creole','Dialect'],items:[
+  ['Business people from Japan, Brazil, and Germany all use English to make a deal.','Lingua franca','A shared language between people with different native languages.'],
+  ['Haitian Creole developed from French mixed with West African languages and is now people’s first language.','Creole','A mixed language that became a native language.'],
+  ['Traders create a simple mix of English and a local language just to buy and sell goods. Nobody grows up speaking it.','Pidgin','A simplified trade language with no native speakers.'],
+  ['People in Boston say "wicked" and drop their r’s, while people in Texas say "y’all."','Dialect','Regional varieties of the same language.'],
+  ['Swahili is used across East Africa so people from different ethnic groups can communicate.','Lingua franca','A common language across groups with different native languages.'],
+  ['Children in Papua New Guinea grow up speaking Tok Pisin, which started as a trade language.','Creole','It began as a pidgin but now has native speakers.'],
+  ['British English says "lorry" and "flat," while American English says "truck" and "apartment."','Dialect','Different regional varieties of English.'],
+ ]},
+ att:{name:'Attitude',opts:['Ethnocentrism','Cultural relativism'],items:[
+  ['A tourist says the food in another country is "disgusting" because it’s not like food at home.','Ethnocentrism','Judging another culture by your own standards.'],
+  ['A student learns why some cultures eat with their hands instead of judging it as rude.','Cultural relativism','Understanding a culture on its own terms.'],
+  ['A traveler assumes their country’s way of doing things is the "normal" way.','Ethnocentrism','Seeing your own culture as the standard or superior.'],
+  ['An anthropologist studies a village’s traditions without comparing them to her own culture.','Cultural relativism','Judging a culture by its own standards.'],
+ ]},
+ folk:{name:'Folk or popular',opts:['Folk culture','Popular culture'],items:[
+  ['Amish communities make their own clothes and farm without modern machines.','Folk culture','Small, rural, traditional, and slow to change.'],
+  ['A new sneaker release sells out worldwide in one day.','Popular culture','Large, global, fast-changing, spread through media.'],
+  ['A village has made the same style of pottery for 400 years.','Folk culture','Traditional and slow to change.'],
+  ['Fast-food restaurants look the same in Tokyo, Paris, and Chicago.','Popular culture','Spreads globally and makes places look alike (placelessness).'],
+  ['Traditional Irish step dancing is passed down within local communities.','Folk culture','Traditional and passed down within a group.'],
+  ['A streaming show becomes a hit in 90 countries the same week.','Popular culture','Spreads quickly worldwide through media.'],
+ ]},
+ rel:{name:'Universalizing or ethnic',opts:['Universalizing','Ethnic'],items:RELIGIONS.map(r=>[`${r.n}`,r.type,`${r.n} is ${r.type.toLowerCase()}. ${r.type==='Universalizing'?'It seeks converts around the world.':'It’s tied to one group or place and doesn’t actively seek converts.'}`])},
+ conv:{name:'Convergence or divergence',opts:['Cultural convergence','Cultural divergence'],items:[
+  ['People around the world wear jeans and use the same social media apps.','Cultural convergence','Cultures becoming more alike through contact.'],
+  ['The Amish separate themselves from modern American society.','Cultural divergence','A group pulling away and becoming more different.'],
+  ['English words like "weekend" and "email" are used in many languages.','Cultural convergence','Cultures becoming more alike.'],
+  ['France passes laws to protect the French language from English words.','Cultural divergence','Pushing back to keep a culture distinct.'],
+  ['After the Soviet Union broke up, several countries brought back their own languages and stopped using Russian.','Cultural divergence','Cultures separating and becoming more distinct.'],
+ ]},
+};
+
+/* ---------- study sheet ---------- */
+$('#sheet-body').innerHTML=[['Culture & landscape','cul'],['Diffusion','dif'],['Effects of diffusion & language contact','eff'],['Religion & language','rel']].map(([h,g])=>`<h4>${h}</h4>`+TERMS.filter(x=>x.g===g).map(x=>`<div class="def"><b>${esc(x.t)}</b><span>${esc(x.d)}</span></div>`).join('')).join('')+
+`<h4>Major religions</h4><div class="tbl"><table><thead><tr><th>Religion</th><th>Type</th><th>Hearth</th><th>How it spread</th><th>Branches / notes</th><th>Holy places</th></tr></thead><tbody>${RELIGIONS.map(r=>`<tr><td>${esc(r.n)}</td><td>${esc(r.type)}</td><td>${esc(r.hearth)}</td><td>${esc(r.spread)}</td><td>${esc(r.branches)}</td><td>${esc(r.holy)}</td></tr>`).join('')}</tbody></table></div>
+<h4>Indo-European branches</h4><div class="def"><b>Germanic</b><span>English, German, Dutch, Swedish</span></div><div class="def"><b>Romance</b><span>Spanish, French, Italian, Portuguese, Romanian (from Latin)</span></div><div class="def"><b>Balto-Slavic</b><span>Russian, Polish, Ukrainian</span></div><div class="def"><b>Indo-Iranian</b><span>Hindi, Bengali, Urdu, Persian (Farsi). Most speakers of any branch.</span></div>
+<h4>Indo-European hearth theories</h4><div class="def"><b>Kurgan hypothesis</b><span>Spread from the steppes north of the Black and Caspian Seas around 4000–3000 BCE by horse-riding warriors (conquest).</span></div><div class="def"><b>Anatolian hypothesis</b><span>Spread from Anatolia (Turkey) around 7000–6000 BCE as farming spread (agriculture, peacefully).</span></div>
+<h4>Other language families</h4><div class="def"><b>Sino-Tibetan</b><span>Mandarin, Cantonese. Second-largest family.</span></div><div class="def"><b>Afro-Asiatic</b><span>Arabic, Hebrew</span></div><div class="def"><b>Niger-Congo</b><span>Swahili, Yoruba</span></div><div class="def"><b>Austronesian</b><span>Indonesian, Malay, Tagalog</span></div><div class="def"><b>Uralic</b><span>Finnish, Hungarian</span></div><div class="def"><b>Isolated</b><span>Basque</span></div>`;
+
+/* ---------- generic multiple-choice engine ---------- */
+function makeEngine(id,gen,opts={}){
+  const E={queue:[],cur:null,state:'ask',right:0,total:0,picked:null};
+  const next=re=>{if(re&&E.cur)E.queue.splice(Math.min(3,E.queue.length),0,{...E.cur,retry:true});if(!E.queue.length)E.queue=gen();E.cur=E.queue.shift();E.state='ask';E.picked=null;render();};
+  function finish(ok){E.total++;if(ok)E.right++;score(ok);if(E.cur.key)bump(E.cur.key,ok?-1:1);E.state=ok?'right':'wrong';E.miss=!ok;render();}
+  function render(){const q=E.cur,el=$('#'+id+'-card'),st=E.state;$('#'+id+'-count').textContent=`${E.right} / ${E.total} correct`;
+    const fb=st==='ask'?'':`<div class="fb ${st==='right'?'ok':'no'}"><strong>${st==='right'?'Correct.':'Not quite. This one comes back in a few questions.'}</strong>${st!=='right'?`<p class="answer">${esc(q.answer)}</p>`:''}${q.why?`<p>${q.why}</p>`:''}</div>`;
+    el.innerHTML=`<div class="card"><p class="label">${esc(q.label)}${q.retry?' · try again':''}</p><div class="prompt">${q.prompt}</div>
+      <div class="mc">${q.choices.map((c,i)=>{let cls='';if(st!=='ask')cls=c===q.answer?'ok':c===E.picked?'no':'dim';return `<button class="opt ${cls}" data-i="${i}" ${st!=='ask'?'disabled':''}><span class="k">${i+1}</span><span>${esc(c)}</span></button>`;}).join('')}</div>
+      ${fb}<div class="row">${st==='ask'?`<span class="kbd">Press 1–${q.choices.length}</span>`:`<button class="btn primary" id="${id}-next">Next</button><span class="kbd">Enter</span>`}</div></div>`;
+    if(st==='ask')el.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{E.picked=q.choices[+b.dataset.i];finish(E.picked===q.answer);});
+    else{const b=$('#'+id+'-next');b.onclick=()=>next(E.miss);b.focus();}}
+  return{start(){E.right=0;E.total=0;E.queue=gen();next();},key(e){const q=E.cur;if(q&&E.state==='ask'&&/^[1-9]$/.test(e.key)){const b=document.querySelector(`#${id}-card .opt[data-i="${+e.key-1}"]`);if(b)b.click();}}};
+}
+
+/* ---------- MULTIPLE CHOICE ---------- */
+function mcDef(pool){const x=pick(pool);const wrong=shuffle(TERMS.filter(y=>y!==x&&y.g===x.g)).slice(0,3).map(y=>y.t);return{label:'Definition',prompt:esc(x.d),choices:shuffle([x.t,...wrong]),answer:x.t,key:x.t};}
+function mcCls(keys){const k=pick(keys),c=CLS[k],[s,a,w]=pick(c.items);const choices=c.opts.length<=4?[...c.opts]:shuffle([a,...shuffle(c.opts.filter(o=>o!==a)).slice(0,3)]);
+  return{label:c.name,prompt:esc(k==='rel'?`Is ${s} a universalizing or an ethnic religion?`:s),choices,answer:a,why:esc(w)};}
+function mcRel(){const r=pick(RELIGIONS);const kind=pick(['hearth','holy','branches']);
+  const others=shuffle(RELIGIONS.filter(x=>x!==r));
+  if(kind==='hearth'){const ch=[r.hearth,...[...new Set(others.map(x=>x.hearth))].filter(h=>h!==r.hearth).slice(0,3)];return{label:'Religion',prompt:`Where is the hearth of ${esc(r.n)}?`,choices:shuffle(ch),answer:r.hearth,why:esc(`${r.n} spread through: ${r.spread}.`)};}
+  if(kind==='holy')return{label:'Religion',prompt:`Which religion’s holy places include ${esc(r.holy)}?`,choices:shuffle([r.n,...others.slice(0,3).map(x=>x.n)]),answer:r.n};
+  return{label:'Religion',prompt:`Which religion has these branches or features: ${esc(r.branches)}?`,choices:shuffle([r.n,...others.slice(0,3).map(x=>x.n)]),answer:r.n};}
+function mcLang(){const [l,f,b]=pick(LANGS);if(b&&Math.random()<.5){return{label:'Language',prompt:`${esc(l)} belongs to which branch of the Indo-European family?`,choices:shuffle(['Germanic','Romance','Balto-Slavic','Indo-Iranian']),answer:b};}
+  const fams=Object.keys(FAM_A);return{label:'Language',prompt:`${esc(l)} belongs to which language family?`,choices:shuffle([f,...shuffle(fams.filter(x=>x!==f)).slice(0,3)]),answer:f};}
+const CONCEPTS=[
+ ['Which describes sequent occupance?','Each group that lives in a place leaves layers on the cultural landscape',['A culture spreads from a big city to smaller ones','Two cultures blend into a new one','A place loses its uniqueness']],
+ ['Which is the BEST example of placelessness?','Identical strip malls with the same chain stores in every town',['A Hindu temple on the Ganges River','A historic adobe village in New Mexico','A Chinatown in San Francisco']],
+ ['Which is a centripetal effect of a lingua franca like English?','People from different cultures can communicate and do business',['Local languages become extinct','Dialects become more different','Folk cultures become stronger']],
+ ['The Kurgan hypothesis says Indo-European languages spread mainly through…','conquest by horse-riding warriors from the steppes',['farming spreading from Anatolia','sea trade across the Mediterranean','missionaries from Rome']],
+ ['The Anatolian hypothesis says Indo-European languages spread mainly through…','the spread of farming from Anatolia (Turkey)',['conquest by horse-riding warriors','colonization by Britain','the Silk Road']],
+ ['How did colonialism affect languages around the world?','It spread European languages like English, Spanish, and French to other continents',['It made every colony invent a new language','It made Latin the world lingua franca','It had no effect on language']],
+ ['Which best describes time-space compression?','The world feels smaller because ideas and people travel faster',['Cities spread out over more land','Time zones are being removed','Distance has no effect on anything']],
+ ['Folk culture usually spreads by…','relocation diffusion',['hierarchical diffusion through TV','contagious diffusion online','stimulus diffusion through ads']],
+ ['Popular culture usually spreads by…','hierarchical and contagious diffusion through media',['relocation diffusion only','staying in one small place','slow change over centuries']],
+ ['Which religion is the largest in the world?','Christianity',['Islam','Hinduism','Buddhism']],
+ ['Which branch of Islam has the most followers?','Sunni',['Shia','Sufi','Wahhabi']],
+ ['Why is English a global lingua franca today?','British colonialism plus U.S. economic and cultural power',['It is the oldest language','It has the most native speakers','The UN made it the only official language']],
+ ['Which language family has the most speakers?','Indo-European',['Sino-Tibetan','Afro-Asiatic','Niger-Congo']],
+ ['Which is an example of a sacred space?','The Ganges River for Hindus',['A shopping mall','A highway interchange','An office park']],
+ ['Languages become extinct mainly because…','speakers switch to a more dominant language',['governments ban all languages','they become too difficult','they have no written form']],
+ ['Hebrew is a famous example of a language that was…','revived after nearly dying out',['invented as a pidgin','spread by the Kurgan warriors','created by stimulus diffusion']],
+];
+function mcConcept(){const [q,a,w]=pick(CONCEPTS);return{label:'Concepts',prompt:esc(q),choices:shuffle([a,...w]),answer:a};}
+const MCF={mix:'Mixed',vocab:'Vocab',dif:'Diffusion',eff:'Effects',rl:'Religion & language'};
+const mcF=filterChips('mc-filter',MCF,'mcF',()=>MC.start());
+const MC=makeEngine('mc',()=>{const f=mcF(),out=[];for(let i=0;i<10;i++){const r=Math.random();let q;
+  if(f==='vocab')q=mcDef(TERMS);
+  else if(f==='dif')q=r<.6?mcCls(['dif']):mcDef(TERMS.filter(x=>x.g==='dif'));
+  else if(f==='eff')q=r<.6?mcCls(['eff','lang','conv']):mcDef(TERMS.filter(x=>x.g==='eff'));
+  else if(f==='rl')q=r<.4?mcRel():r<.75?mcLang():mcCls(['rel']);
+  else q=[()=>mcDef(TERMS),()=>mcCls(Object.keys(CLS)),mcRel,mcLang,mcConcept][Math.floor(r*5)]();
+  out.push(q);}return out;});
+
+/* ---------- CLASSIFY IT ---------- */
+const CLF={all:'Mixed',...Object.fromEntries(Object.entries(CLS).map(([k,c])=>[k,c.name]))};
+const clsF=filterChips('cls-filter',CLF,'clsF',()=>CL.start());
+const CL=makeEngine('cls',()=>{const f=clsF();const keys=f==='all'?Object.keys(CLS):[f];const out=[];
+  keys.forEach(k=>CLS[k].items.forEach(([s,a,w])=>out.push({label:CLS[k].name,prompt:esc(k==='rel'?`Is ${s} a universalizing or an ethnic religion?`:s),choices:[...CLS[k].opts],answer:a,why:esc(w)})));
+  return shuffle(out).slice(0,f==='all'?14:out.length);});
+
+/* ---------- VOCAB ---------- */
+const VF={all:'All terms',cul:'Culture & landscape',dif:'Diffusion',eff:'Effects & language',rel:'Religion & language',weak:'My weak ones'};
+const vF=filterChips('vocab-filter',VF,'vocabF',()=>buildVocab());
+const vD=filterChips('vocab-dir',{d2t:'Definition → term',t2d:'Term → definition'},'vocabD',()=>{V.state='ask';renderVocab();});
+const V={queue:[],cur:null,total:0,first:0,missed:new Set(),state:'ask',miss:false,requeue:false,typed:'',note:''};
+function buildVocab(only){let list=only?only.map(t=>byT[t]):TERMS.filter(x=>vF()==='all'||vF()==='weak'||x.g===vF());V.note='';
+  if(!only&&vF()==='weak'){const m=missMap();const w=list.filter(x=>(m[x.t]||0)>0);if(w.length)list=w;else V.note='No weak terms yet. Anything you miss anywhere in the app shows up here.';}
+  V.queue=shuffle(list.map(x=>x.t));V.total=V.queue.length;V.first=0;V.missed=new Set();V.cur=null;nextVocab();}
+function nextVocab(){if(V.requeue&&V.cur)V.queue.splice(Math.min(3,V.queue.length),0,V.cur);V.requeue=false;V.cur=V.queue.length?V.queue.shift():null;V.state='ask';V.miss=false;V.typed='';renderVocab();}
+function vMiss(){if(!V.miss){V.miss=true;V.missed.add(V.cur);bump(V.cur,1);score(false);}V.requeue=true;}
+function vRight(){if(!V.miss){V.first++;score(true);bump(V.cur,-1);}}
+function renderVocab(){const el=$('#vocab-card');
+  if(!V.cur){const pct=V.total?Math.round(V.first/V.total*100):0,ms=[...V.missed];
+    el.innerHTML=`<div class="card"><p class="label">Deck cleared</p><p class="big">${pct}%</p><p class="tip">${V.first} of ${V.total} recalled on the first try.</p>${ms.length?`<div class="missed">${ms.map(t=>`<span>${esc(t)}</span>`).join('')}</div>`:''}<div class="row">${ms.length?`<button class="btn primary" id="v-redo">Drill these ${ms.length} again</button>`:''}<button class="btn" id="v-again">Start over</button></div></div>`;
+    if(ms.length)$('#v-redo').onclick=()=>buildVocab(ms);$('#v-again').onclick=()=>buildVocab();return;}
+  const x=byT[V.cur],head=`<div class="row" style="justify-content:space-between"><p class="label">${vD()==='d2t'?'Definition':'Term'}</p><span class="count">${V.queue.length+1} left · ${V.first} first try</span></div>${V.note?`<p class="tip">${esc(V.note)}</p>`:''}`;
+  if(vD()==='d2t'){const st=V.state;let fb='',act='';
+    if(st==='ask')act='<button class="btn primary" id="v-check">Check</button><button class="btn ghost" id="v-idk">I don’t know</button><span class="kbd">Enter</span>';
+    else{fb=st==='right'?`<div class="fb ok"><strong>Got it.</strong><p class="answer">${esc(x.t)}</p></div>`:`<div class="fb no"><strong>${st==='reveal'?'Here’s the answer.':'Not quite.'} It comes back in a few cards.</strong><p class="answer">${esc(x.t)}</p></div>`;
+      act=`<button class="btn primary" id="v-next">Next card</button>${st==='wrong'?'<button class="btn ghost" id="v-ov">I had it right</button>':''}<span class="kbd">Enter</span>`;}
+    el.innerHTML=`<div class="card">${head}<p class="prompt">${esc(x.d)}</p><label for="v-in" style="position:absolute;left:-9999px">Your answer</label><input type="text" id="v-in" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type the term" ${st!=='ask'?'readonly':''} value="${esc(V.typed)}">${fb}<div class="row">${act}</div></div>`;
+    const inp=$('#v-in');const check=()=>{if(!inp.value.trim()){inp.focus();return;}V.typed=inp.value;if(matches(inp.value,x.a)){vRight();V.state='right';}else{vMiss();V.state='wrong';}renderVocab();};
+    if(st==='ask'){inp.focus();inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();check();}};$('#v-check').onclick=check;$('#v-idk').onclick=()=>{vMiss();V.state='reveal';renderVocab();};}
+    else{inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();nextVocab();}};$('#v-next').onclick=nextVocab;$('#v-next').focus();
+      if($('#v-ov'))$('#v-ov').onclick=()=>{V.missed.delete(V.cur);bump(V.cur,-2);tally.right++;$('#tally').textContent=tally.right+' / '+tally.total;V.first++;V.requeue=false;V.state='right';renderVocab();};}
+  }else{const st=V.state;let body='';
+    if(st==='ask')body=`<textarea id="v-ta" placeholder="Explain it in your own words. Add an example if you can."></textarea><div class="row"><button class="btn primary" id="v-show">Show the definition</button><span class="kbd">Ctrl + Enter</span></div>`;
+    else if(st==='grade')body=`<div class="fb info"><strong>Definition</strong><p>${esc(x.d)}</p></div><p class="tip">Did you get the main idea?</p><div class="row"><button class="btn good" id="v-got">Got it</button><button class="btn bad" id="v-missed">Missed it</button></div>`;
+    else body=`<div class="fb ${V.miss?'no':'ok'}"><strong>${V.miss?'It comes back in a few cards.':'Nice.'}</strong><p>${esc(x.d)}</p></div><div class="row"><button class="btn primary" id="v-next">Next card</button></div>`;
+    el.innerHTML=`<div class="card">${head}<p class="prompt term">${esc(x.t)}</p>${body}</div>`;
+    if($('#v-ta')){const ta=$('#v-ta');ta.focus();ta.onkeydown=e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();V.state='grade';renderVocab();}};$('#v-show').onclick=()=>{V.state='grade';renderVocab();};}
+    if($('#v-got')){$('#v-got').onclick=()=>{vRight();V.state='done';renderVocab();};$('#v-missed').onclick=()=>{vMiss();V.state='done';renderVocab();};}
+    if($('#v-next')&&st==='done'){$('#v-next').onclick=nextVocab;$('#v-next').focus();}}}
+
+/* ---------- RELIGIONS & LANGUAGES (typed) ---------- */
+const RLF={mix:'Mixed',rel:'Religions',lang:'Languages'};
+const rlF=filterChips('rl-filter',RLF,'rlF',()=>RL.start());
+function rlGen(){const f=rlF(),out=[];
+  const relQ=()=>{const r=pick(RELIGIONS),k=pick(['type','hearth','branch','holy']);
+    if(k==='type')return{q:`Is ${r.n} universalizing or ethnic?`,a:[r.type],show:r.type,why:r.type==='Universalizing'?'It seeks converts worldwide.':'It’s tied to one group or place.'};
+    if(k==='hearth')return{q:`Where is the hearth of ${r.n}?`,a:r.hA,show:r.hearth,why:`Spread: ${r.spread}.`};
+    if(k==='branch')return{q:`Name a branch or key feature of ${r.n}.`,a:r.bA,show:r.branches,why:''};
+    return{q:`Name a holy place of ${r.n}.`,a:r.holy.toLowerCase().replace(/[()]/g,',').split(/,| and /).map(s=>s.trim()).filter(Boolean),show:r.holy,why:''};};
+  const langQ=()=>{const [l,f2,b]=pick(LANGS);if(b&&Math.random()<.5)return{q:`${l} is in which branch of Indo-European?`,a:BR_A[b],show:b,why:`${l}: ${f2} family, ${b} branch.`};
+    return{q:`${l} belongs to which language family?`,a:FAM_A[f2],show:f2,why:''};};
+  for(let i=0;i<10;i++){const x=f==='rel'?relQ():f==='lang'?langQ():(Math.random()<.5?relQ():langQ());out.push(x);}return out;}
+const R={queue:[],cur:null,state:'ask',right:0,total:0,typed:''};
+const RL={start(){R.right=0;R.total=0;R.queue=rlGen();nextRL();}};
+function nextRL(re){if(re&&R.cur)R.queue.splice(Math.min(3,R.queue.length),0,R.cur);if(!R.queue.length)R.queue=rlGen();R.cur=R.queue.shift();R.state='ask';R.typed='';renderRL();}
+function renderRL(){const q=R.cur,el=$('#rl-card'),st=R.state;$('#rl-count').textContent=`${R.right} / ${R.total} correct`;
+  const fb=st==='ask'?'':`<div class="fb ${st==='right'?'ok':'no'}"><strong>${st==='right'?'Correct.':st==='reveal'?'Here’s the answer.':'Not quite.'}</strong><p class="answer">${esc(q.show)}</p>${q.why?`<p>${esc(q.why)}</p>`:''}</div>`;
+  el.innerHTML=`<div class="card"><p class="label">${rlF()==='lang'||/language|branch of Indo/.test(q.q)?'Languages':'Religions'}</p><p class="prompt">${esc(q.q)}</p><label for="rl-in" style="position:absolute;left:-9999px">Your answer</label><input type="text" id="rl-in" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type your answer" ${st!=='ask'?'readonly':''} value="${esc(R.typed)}" class="${st==='right'?'ok':st==='ask'?'':'no'}">${fb}
+    <div class="row">${st==='ask'?'<button class="btn primary" id="rl-check">Check</button><button class="btn ghost" id="rl-idk">I don’t know</button>':`<button class="btn primary" id="rl-next">Next</button>${st==='wrong'?'<button class="btn ghost" id="rl-ov">I had it right</button>':''}`}<span class="kbd">Enter</span></div></div>`;
+  const inp=$('#rl-in');
+  const fin=ok=>{R.total++;if(ok)R.right++;score(ok);R.miss=!ok;};
+  const check=()=>{if(!inp.value.trim()){inp.focus();return;}R.typed=inp.value;const v=norm(inp.value);const ok=matches(inp.value,q.a)||q.a.some(a=>{const b=norm(a);return b.length>=4&&(v.includes(b)||b.includes(v)&&v.length>=4);});fin(ok);R.state=ok?'right':'wrong';renderRL();};
+  if(st==='ask'){inp.focus();inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();check();}};$('#rl-check').onclick=check;$('#rl-idk').onclick=()=>{fin(false);R.state='reveal';renderRL();};}
+  else{inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();nextRL(R.miss);}};const b=$('#rl-next');b.onclick=()=>nextRL(R.miss);b.focus();
+    if($('#rl-ov'))$('#rl-ov').onclick=()=>{R.right++;tally.right++;$('#tally').textContent=tally.right+' / '+tally.total;R.miss=false;R.state='right';renderRL();};}}
+
+/* ---------- EXPLAIN IT ---------- */
+const EXP=[
+ {id:'relexp',t:'Relocation vs. expansion',q:'Compare relocation diffusion and expansion diffusion. Give an example of each.',pts:[
+  ['Relocation: people physically move and bring the trait with them.',['move','migrat','relocation','bring','carry']],
+  ['Relocation example (immigrants, missionaries, diaspora).',['immigra','missionar','diaspora','migrant']],
+  ['Expansion: the trait spreads outward and stays strong at its hearth.',['expansion','outward','stays','hearth','origin']],
+  ['Names a type of expansion: hierarchical, contagious, or stimulus.',['hierarch','contagious','stimulus']],
+  ['Expansion example (viral trend, fashion from big cities, McDonald’s menus).',['viral','fashion','social media','mcdonald','trend']]]},
+ {id:'univeth',t:'Universalizing vs. ethnic',q:'Compare universalizing and ethnic religions. Give two examples of each and explain how their spread is different.',pts:[
+  ['Universalizing religions try to appeal to everyone and seek converts.',['convert','everyone','anyone','universal']],
+  ['Examples: Christianity, Islam, Buddhism, Sikhism.',['christian','islam','buddhis','sikh','muslim']],
+  ['Ethnic religions are tied to one group or place and don’t seek converts.',['ethnic','one group','specific group','place','don t seek','do not seek']],
+  ['Examples: Hinduism, Judaism, Shinto.',['hindu','juda','jewish','shinto']],
+  ['Universalizing religions spread widely by missionaries, trade, and conquest (expansion and relocation).',['missionar','trade','conquest','expansion','widely','world']],
+  ['Ethnic religions stay concentrated near their hearth and spread mostly by relocation.',['concentrated','relocation','stay','hearth','diaspora']]]},
+ {id:'folkpop',t:'Folk vs. popular culture',q:'Compare folk culture and popular culture, including how each one spreads and how each affects the landscape.',pts:[
+  ['Folk culture: small, rural, traditional groups.',['small','rural','tradition','homogeneous']],
+  ['Folk culture changes slowly and spreads by relocation diffusion.',['slow','relocation']],
+  ['Popular culture: large, diverse, urban societies.',['large','diverse','urban','global']],
+  ['Popular culture changes fast and spreads by hierarchical or contagious diffusion through media.',['fast','quick','hierarch','contagious','media','internet']],
+  ['Popular culture can create placelessness (places look the same).',['placeless','same','alike','uniform']],
+  ['Popular culture can threaten folk cultures (cultural convergence).',['threat','replace','convergence','lose','disappear']]]},
+ {id:'colonial',t:'Colonialism & language',q:'Explain how colonialism and imperialism spread languages and religions. Use specific examples.',pts:[
+  ['European countries took control of territories around the world.',['europe','colon','imperial','control','empire']],
+  ['They spread their languages (English, Spanish, French, Portuguese).',['english','spanish','french','portuguese']],
+  ['Specific example: Spanish in Latin America, English in India, French in West Africa, etc.',['latin america','mexico','brazil','india','africa','canada','australia']],
+  ['They spread Christianity through missionaries.',['christian','missionar','catholic']],
+  ['This is relocation diffusion (and sometimes forced).',['relocation','forced']],
+  ['Effects today: English as a lingua franca, creole languages, loss of indigenous languages.',['lingua franca','creole','indigenous','extinct','lost']]]},
+ {id:'global',t:'Globalization',q:'Explain how globalization and time-space compression affect cultures around the world.',pts:[
+  ['Time-space compression: ideas and people travel faster, so the world feels smaller.',['faster','smaller','compress','quick']],
+  ['Technology like the internet, social media, and air travel spreads culture quickly.',['internet','social media','technology','phone','travel','tv']],
+  ['Cultural convergence: cultures become more alike.',['convergence','alike','similar','same']],
+  ['Placelessness and the spread of global brands.',['placeless','mcdonald','brand','chain','starbucks']],
+  ['Some groups push back to protect their culture (cultural divergence / revival).',['divergence','protect','push back','revival','preserve','resist']],
+  ['English becomes a global lingua franca.',['english','lingua franca']]]},
+ {id:'effects',t:'Effects of contact',q:'Explain the difference between acculturation, assimilation, and syncretism. Give an example of each.',pts:[
+  ['Acculturation: a group adopts some new traits but keeps its own culture.',['accultur','some','keep']],
+  ['Assimilation: a group fully adopts the dominant culture and loses its own.',['assimil','fully','lose','lost','replace']],
+  ['Syncretism: two cultures blend into something new.',['syncret','blend','combine','mix','new']],
+  ['Acculturation or assimilation example (immigrant families).',['immigra','family','children','grandchildren','boarding school']],
+  ['Syncretism example (Day of the Dead, Santería, Tex-Mex).',['day of the dead','dia de','santeria','tex mex','voodoo']]]},
+ {id:'indoeu',t:'Indo-European hearth',q:'Describe the two main theories about how the Indo-European language family spread.',pts:[
+  ['Kurgan hypothesis: spread from the steppes near the Black and Caspian Seas.',['kurgan','steppe','black sea','caspian']],
+  ['Kurgan: spread through conquest by horse-riding warriors.',['horse','warrior','conquest','war','military']],
+  ['Anatolian hypothesis: spread from Anatolia (modern Turkey).',['anatolia','turkey']],
+  ['Anatolian: spread peacefully with the spread of farming (agriculture).',['farm','agricultur','peaceful']],
+  ['Indo-European became the largest language family (English, Spanish, Hindi, etc.).',['largest','english','spanish','hindi','most speakers']]]},
+ {id:'landscape',t:'Cultural landscape',q:'Explain how culture shows up on the landscape. Use sequent occupance, sacred space, and architecture.',pts:[
+  ['The cultural landscape is the visible imprint of people on the land.',['visible','imprint','landscape']],
+  ['Sequent occupance: each group that lives in a place leaves layers.',['sequent','layer','each group','successive']],
+  ['Example of sequent occupance (a city with buildings from different groups).',['jerusalem','mexico city','istanbul','new orleans','rome','example']],
+  ['Sacred spaces show religion on the landscape (temples, churches, mosques, holy sites).',['sacred','temple','church','mosque','holy']],
+  ['Traditional architecture uses local materials; postmodern architecture looks similar worldwide.',['traditional','postmodern','local material','skyscraper','architecture']]]},
+];
+let expCur=store.get('exp',EXP[0].id);if(!EXP.find(e=>e.id===expCur))expCur=EXP[0].id;
+const X={state:'write',text:'',checks:[],auto:[]};
+function renderExpChips(){const best=store.get('expBest',{});$('#exp-chips').innerHTML=EXP.map(e=>`<button class="chip" data-id="${e.id}" aria-pressed="${e.id===expCur}">${esc(e.t)}${best[e.id]!=null?` <span class="count">${best[e.id]}/${e.pts.length}</span>`:''}</button>`).join('');
+  document.querySelectorAll('#exp-chips .chip').forEach(c=>c.onclick=()=>{expCur=c.dataset.id;store.set('exp',expCur);X.state='write';X.text='';renderExpChips();renderExp();});}
+function renderExp(){const e=EXP.find(x=>x.id===expCur),el=$('#exp-card');
+  if(X.state==='write'){el.innerHTML=`<div class="card"><p class="label">Explain it · from memory</p><p class="prompt">${esc(e.q)}</p><label for="x-ta" style="position:absolute;left:-9999px">Your answer</label><textarea id="x-ta" style="min-height:180px" placeholder="Write it like an FRQ answer. Use the vocab and give specific examples."></textarea><div class="row"><button class="btn primary" id="x-check">Check my answer</button><span class="kbd">Ctrl + Enter</span></div></div>`;
+    const ta=$('#x-ta');ta.value=X.text;ta.focus();ta.oninput=()=>X.text=ta.value;ta.onkeydown=ev=>{if(ev.key==='Enter'&&(ev.ctrlKey||ev.metaKey)){ev.preventDefault();$('#x-check').click();}};
+    $('#x-check').onclick=()=>{if(!X.text.trim()){ta.focus();return;}const low=' '+X.text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[’']/g,'').replace(/[^a-z0-9]+/g,' ')+' ';X.checks=e.pts.map(p=>p[1].some(k=>low.includes(k)));X.auto=[...X.checks];X.state='check';renderExp();};
+  }else{const n=e.pts.length,got=X.checks.filter(Boolean).length;
+    el.innerHTML=`<div class="card"><p class="label">${esc(e.t)}</p><div class="row" style="gap:12px;align-items:baseline"><p class="big" id="x-score">${got}/${n}</p><p class="tip" style="flex:1;min-width:200px">Check off each point you covered. "Found" tags are a guess from keywords, so fix them if they’re wrong.</p></div>
+      <ul class="check">${e.pts.map((p,i)=>`<li><label class="${X.checks[i]?'on':''}"><input type="checkbox" data-i="${i}" ${X.checks[i]?'checked':''}><span>${esc(p[0])}</span>${X.auto[i]?'<span class="auto">found</span>':''}</label></li>`).join('')}</ul>
+      <div class="fb info"><strong>What you wrote</strong><p style="white-space:pre-wrap">${esc(X.text)}</p></div>
+      <div class="row"><button class="btn primary" id="x-save">Save score &amp; next</button><button class="btn" id="x-again">Try this one again</button></div></div>`;
+    el.querySelectorAll('ul.check input').forEach(cb=>cb.onchange=()=>{X.checks[+cb.dataset.i]=cb.checked;cb.parentElement.classList.toggle('on',cb.checked);$('#x-score').textContent=X.checks.filter(Boolean).length+'/'+n;});
+    $('#x-again').onclick=()=>{X.state='write';X.text='';renderExp();};
+    $('#x-save').onclick=()=>{const g=X.checks.filter(Boolean).length,best=store.get('expBest',{});best[e.id]=Math.max(best[e.id]||0,g);store.set('expBest',best);X.checks.forEach(score);
+      const i=EXP.indexOf(e);expCur=EXP[(i+1)%EXP.length].id;store.set('exp',expCur);X.state='write';X.text='';renderExpChips();renderExp();};}}
+
+/* ---------- tabs + boot ---------- */
+const TABS=['mc','vocab','cls','rl','exp'];
+function showTab(t){TABS.forEach(x=>{$('#pane-'+x).hidden=x!==t;$('#tab-'+x).setAttribute('aria-selected',x===t);});store.set('tab',t);
+  const f=document.querySelector('#pane-'+t+' input[type=text]:not([readonly]),#pane-'+t+' textarea');if(f)f.focus();}
+document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+document.addEventListener('keydown',e=>{if(e.target.matches('input,textarea'))return;if(!$('#pane-mc').hidden)MC.key(e);if(!$('#pane-cls').hidden)CL.key(e);});
+MC.start();CL.start();buildVocab();RL.start();renderExpChips();renderExp();
+const t0=store.get('tab','mc');showTab(TABS.includes(t0)?t0:'mc');
+</script>
+</body>
+</html>
