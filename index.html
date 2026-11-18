@@ -1,13 +1,6 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Culture Recall Lab</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><style>html{color-scheme:light}body{margin:0}img{max-width:100%}:root{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}</style><title>Culture Recall Lab</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
-html{color-scheme:light}body{margin:0}img{max-width:100%}
-:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 /* Layout: one study column; header with a diffusion-rings mark and session tally; six recall modes as tabs */
 :root{
   --bg:#EEF0F6; --surface:#FFFFFF; --sunk:#F5F6FA; --ink:#171B2B; --muted:#596079; --line:#D5D9E5;
@@ -99,9 +92,8 @@ details.sheet[open] summary::after{content:"Hide"}
 .tbl th{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
 .tbl td:first-child{font-weight:700}
 @media (prefers-reduced-motion:no-preference){.fb{animation:pop .18s ease-out}@keyframes pop{from{transform:translateY(3px);opacity:.4}to{transform:none;opacity:1}}}
-</style>
-</head>
-<body>
+</style></head><body>
+
 <header class="top">
   <div class="wrap head">
     <div class="brand">
@@ -168,9 +160,13 @@ const TERMS=[
  ['Ethnocentrism','Judging other cultures by the standards of your own and seeing your own culture as superior.',['ethnocentric'],'cul'],
  ['Folk culture','The traditional culture of small, rural, close-knit groups. It changes slowly and spreads mostly by relocation diffusion.',['folk'],'cul'],
  ['Popular culture','The culture of large, diverse societies. It changes quickly and spreads fast, often by hierarchical diffusion through media.',['pop culture','popular'],'cul'],
- ['Cultural landscape','The visible imprint of human activity and culture on the land, like buildings, farms, signs, and monuments.',['built environment'],'cul'],
+ ['Cultural landscape','The visible imprint of human activity and culture on the land, like buildings, farms, signs, and monuments.',[],'cul'],
+ ['Built environment','Everything people have built in a place, like buildings, roads, bridges, and parks.',['built'],'cul'],
+ ['Cultural complex','A group of related cultural traits that go together, like the clothes, music, food, and rituals of a wedding.',['culture complex'],'cul'],
+ ['Cultural sustainability','Protecting cultural traditions, languages, and heritage so they last for future generations.',[],'cul'],
  ['Sequent occupance','The idea that each group that lives in a place leaves its own cultural imprint, building up layers over time.',[],'cul'],
  ['Sacred space','A place a religion considers holy, like Mecca, Jerusalem, or the Ganges River.',['sacred site','sacred place'],'cul'],
+ ['Pilgrimage','A journey to a sacred place for religious reasons, like the Hajj to Mecca.',['pilgrimages','hajj'],'cul'],
  ['Sense of place','The feelings and meanings people attach to a place based on their experiences there.',[],'cul'],
  ['Placemaking','Shaping public spaces so they reflect a community’s identity and bring people together.',['place making'],'cul'],
  ['Placelessness','When places lose their uniqueness and start to look the same everywhere, like the same chain stores in every town.',[],'cul'],
@@ -191,25 +187,73 @@ const TERMS=[
  ['Diaspora','The scattering of a group of people away from their homeland, like the Jewish or African diaspora.',['diasporas'],'dif'],
  ['Globalization','The growing connection of the world’s economies, cultures, and people.',[],'dif'],
  ['Time-space compression','The shrinking time it takes for people, goods, and ideas to travel, so the world feels smaller.',['time space compression','space time compression'],'dif'],
- ['Cultural convergence','When cultures become more alike through contact with each other.',['convergence'],'eff'],
+ ['Glocalization','When a global product or company is adapted to fit local tastes, like a global chain changing its menu in each country.',['glocalisation'],'dif'],
+ ['Transnationalism','Keeping social, economic, or cultural ties to more than one country at once, like migrants who send money home and visit often.',['transnational'],'dif'],
+ ['Cultural convergence','When cultures become more alike through contact with each other. Also called homogenization.',['convergence','homogenization','homogenisation'],'eff'],
  ['Cultural divergence','When cultures become more different or separate from each other.',['divergence'],'eff'],
  ['Acculturation','When a group adopts some traits of another culture but keeps its own culture too.',[],'eff'],
  ['Assimilation','When a group fully adopts the dominant culture and loses its original cultural traits.',['assimilate'],'eff'],
- ['Syncretism','When two cultures blend to create a new cultural trait, like Day of the Dead.',['cultural syncretism','syncretic'],'eff'],
+ ['Syncretism','When two cultures blend to create a new cultural trait, like Day of the Dead.',['cultural syncretism','religious syncretism','syncretic'],'eff'],
+ ['Cultural hybridity','New cultural forms created when different cultures keep mixing over time, like K-pop blending Korean and Western music.',['hybridity','hybrid culture'],'eff'],
+ ['Cultural appropriation','When outsiders take symbols or practices from another culture, often without understanding or respect, especially when that culture has less power.',['appropriation'],'eff'],
+ ['Cultural commodification','Turning parts of a culture, like festivals, crafts, or sacred symbols, into products to sell, often to tourists.',['commodification'],'eff'],
  ['Multiculturalism','When many cultures exist side by side in one society and keep their own identities.',['multicultural'],'eff'],
  ['Lingua franca','A shared language used for trade and communication between people with different native languages, like English today.',[],'eff'],
- ['Pidgin','A simplified mix of two or more languages used for trade, with no native speakers.',['pidgin language'],'eff'],
+ ['Pidgin','A simplified mix of two or more languages used for trade, with no native speakers. (Spanglish is not a true pidgin.)',['pidgin language'],'eff'],
  ['Creole','A pidgin that becomes the native language of a group, like Haitian Creole.',['creole language'],'eff'],
  ['Creolization','The blending of different cultures or languages into a new one.',[],'eff'],
  ['Language family','A group of languages that share a common ancestor from before recorded history, like Indo-European.',['family'],'rel'],
  ['Language branch','Languages within a family that share a more recent common origin, like Germanic or Romance.',['branch'],'rel'],
  ['Language group','Languages within a branch that share a recent origin and similar grammar and vocabulary, like West Germanic.',['group'],'rel'],
  ['Dialect','A regional variety of a language with its own accent, words, or grammar.',['dialects'],'rel'],
+ ['Isogloss','A line on a map that separates areas where people use different words or pronunciations, like "soda" vs. "pop."',['isoglosses'],'rel'],
+ ['Official language','A language a government chooses to use for laws, courts, schools, and official business.',[],'rel'],
+ ['Language endangerment','When a language is at risk of dying out because fewer children are learning it.',['endangered language'],'rel'],
+ ['Language revitalization','Efforts to bring back or strengthen a language that is dying out, like teaching Hawaiian or Irish in schools.',['revitalization','language revival'],'rel'],
  ['Isolated language','A language that isn’t related to any other language, like Basque.',['language isolate','isolate'],'rel'],
  ['Toponym','The name given to a place.',['toponyms','place name'],'rel'],
  ['Universalizing religion','A religion that tries to appeal to everyone and actively seeks converts, like Christianity, Islam, Buddhism, and Sikhism.',['universalizing'],'rel'],
  ['Ethnic religion','A religion tied to one group of people or place that doesn’t actively seek converts, like Hinduism and Judaism.',['ethnic'],'rel'],
  ['Secularism','The idea that religion should not play a role in government or public life, or a decline in religious belief.',['secular'],'rel'],
+ ["Taboo","A behavior a culture forbids or strongly discourages, like eating pork in Islam and Judaism.",["taboos"],"cul"],
+ ["Traditional culture","An umbrella term covering folk and indigenous cultures that are passed down and slow to change.",[],"cul"],
+ ["Indigenous culture","The culture of an ethnic group living on its ancestral lands, with its own unique traits.",["indigenous"],"cul"],
+ ["Horizontal diversity","Differences among people within the same group (as defined in your class notes).",["horizontal"],"cul"],
+ ["Vertical diversity","Differences between different groups of people (as defined in your class notes).",["vertical"],"cul"],
+ ["Artifacts","Physical, tangible objects a culture makes, like tools, clothing, and buildings. Also called material culture.",["artifact", "material culture"],"cul"],
+ ["Mentifacts","The non-tangible parts of culture, like beliefs, values, and language. Also called non-material culture.",["mentifact", "non-material culture", "nonmaterial culture"],"cul"],
+ ["Sociofacts","The ways people organize their society, like families, governments, schools, and religious groups.",["sociofact"],"cul"],
+ ["Contemporary architecture","Today’s building style, which builds on postmodern design with more unusual shapes and curves.",["contemporary"],"cul"],
+ ["Cultural region","An area defined by a shared culture, like the Bible Belt in the U.S.",["culture region", "cultural regions"],"cul"],
+ ["Culture realm","A large area made up of many cultural regions that share traits, like Latin America.",["cultural realm", "culture realms"],"cul"],
+ ["Charter group","The first group to set up its culture or religion in an area, shaping the landscape for later groups.",[],"cul"],
+ ["Ethnic island","A cluster of one ethnic group in a rural area. (An ethnic enclave is usually in a city.)",["ethnic islands"],"cul"],
+ ["Neolocalism","Re-embracing a place’s unique local identity, like supporting local breweries and shops instead of chains.",["neo localism"],"cul"],
+ ["Cultural patterns","Related sets of cultural traits that create similar behaviors in a group.",["cultural pattern"],"cul"],
+ ["Nationality","A person’s legal connection to a country, like citizenship.",[],"cul"],
+ ["Ethnically homogeneous","Describes a country where most people share the same ethnicity, like Japan.",["homogeneous", "homogenous"],"cul"],
+ ["Time-space convergence","Places becoming closer in travel time because transportation and communication get faster.",["time space convergence"],"dif"],
+ ["Social construct","An idea or category created by society, not by nature, like national borders or race.",["social constructs"],"eff"],
+ ["Centripetal forces","Forces that unify a group or country, like a shared language, religion, or national holiday.",["centripetal", "centripetal force"],"eff"],
+ ["Centrifugal forces","Forces that divide a group or country, like religious or ethnic conflict.",["centrifugal", "centrifugal force"],"eff"],
+ ["Nativism","Favoring people born in a country and opposing immigration.",["nativist", "nativists"],"eff"],
+ ["Native speakers","People who have spoken a language since birth, as their first language.",["native speaker"],"eff"],
+ ["Slang","Informal words used by a certain group of people.",[],"eff"],
+ ["Sharia","Islamic law based on the Quran and the teachings of Muhammad, used in some Muslim countries.",["sharia law", "shariah"],"rel"],
+ ["Blue laws","Laws that restrict activities, often on Sundays for religious reasons, like limits on alcohol sales.",["blue law"],"rel"],
+ ["Fundamentalism","Following a strict, literal interpretation of a religion’s teachings.",["fundamentalist"],"rel"],
+ ["Theocracy","A country run by religious leaders using religious law, like Iran.",["theocracies"],"rel"],
+ ["Animism","The belief that natural things like rocks, rivers, and trees have spirits.",["animist"],"rel"],
+ ["Monotheism","Belief in one god, like Judaism, Christianity, and Islam.",["monotheistic"],"rel"],
+ ["Polytheism","Belief in many gods, like Hinduism.",["polytheistic"],"rel"],
+ ["Abrahamic religions","Judaism, Christianity, and Islam: monotheistic religions that trace back to Abraham.",["abrahamic"],"rel"],
+ ["Karma","The belief in Hinduism and Buddhism that your actions have consequences in this life or future lives.",[],"rel"],
+ ["Caste system","A rigid social class system tied to Hinduism that historically shaped India.",["caste"],"rel"],
+ ["Adherents","The followers or believers of a religion.",["adherent"],"rel"],
+ ["Distance decay","The idea that interaction drops as distance increases. Religion resists it: believers keep their faith far from the hearth.",[],"rel"],
+ ["Linguist","A scientist who studies languages.",["linguists"],"rel"],
+ ["Language tree","A family tree showing how languages evolved from a common ancestor language.",["language trees"],"rel"],
+ ["Adage","A traditional saying in a language or dialect that expresses a truth about life.",["adages"],"rel"],
 ].map(([t,d,a,g])=>({t,d,a:[t,...a],g}));
 const byT=Object.fromEntries(TERMS.map(x=>[x.t,x]));
 
@@ -220,7 +264,7 @@ const RELIGIONS=[
  {n:'Islam',type:'Universalizing',hearth:'Arabian Peninsula (Mecca)',hA:['mecca','arabian peninsula','arabia','saudi arabia','makkah'],
   spread:'Trade routes and military conquest, then missionaries',branches:'Sunni (most), Shia',bA:['sunni','shia','shiite','shi a'],holy:'Mecca, Medina, Jerusalem (Dome of the Rock)',size:'Second largest, fastest growing'},
  {n:'Buddhism',type:'Universalizing',hearth:'Northeast India / Nepal (Bodh Gaya)',hA:['india','nepal','bodh gaya','northern india','northeast india','lumbini','south asia'],
-  spread:'Missionaries and the Silk Road, helped by Emperor Ashoka (hierarchical)',branches:'Theravada, Mahayana, Vajrayana',bA:['theravada','mahayana','vajrayana'],holy:'Bodh Gaya (where the Buddha found enlightenment)',size:'Mostly East and Southeast Asia'},
+  spread:'Missionaries and the Silk Road, helped by Emperor Ashoka (hierarchical)',branches:'Theravada, Mahayana, Vajrayana',bA:['theravada','mahayana','vajrayana'],holy:'Bodh Gaya (where the Buddha meditated 49 days under the Bodhi tree and found enlightenment)',size:'Mostly East and Southeast Asia'},
  {n:'Sikhism',type:'Universalizing',hearth:'Punjab region (India / Pakistan)',hA:['punjab','india','pakistan','south asia'],
   spread:'Mostly relocation through migration (diaspora)',branches:'Founded by Guru Nanak',bA:['guru nanak'],holy:'Golden Temple in Amritsar',size:'About 25–30 million, mostly in Punjab'},
  {n:'Hinduism',type:'Ethnic',hearth:'Indus River Valley (South Asia)',hA:['indus','indus river valley','india','south asia','indus valley'],
@@ -306,7 +350,7 @@ const CLS={
 };
 
 /* ---------- study sheet ---------- */
-$('#sheet-body').innerHTML=[['Culture & landscape','cul'],['Diffusion','dif'],['Effects of diffusion & language contact','eff'],['Religion & language','rel']].map(([h,g])=>`<h4>${h}</h4>`+TERMS.filter(x=>x.g===g).map(x=>`<div class="def"><b>${esc(x.t)}</b><span>${esc(x.d)}</span></div>`).join('')).join('')+
+$('#sheet-body').innerHTML="<div style=\"background:var(--warm-soft);border-radius:10px;padding:12px 14px;font-size:15px;margin-bottom:10px\"><b style=\"color:var(--warm)\">Fixed from your notes</b><ul style=\"margin:6px 0 0;padding-left:20px\">\n<li><b>Pidgin:</b> Spanglish is not a true pidgin. It is mixing two languages people already speak (code-switching). A pidgin is a simplified trade language with no native speakers, like early Tok Pisin.</li>\n<li><b>Buddhism:</b> the Buddha meditated under the Bodhi tree for <b>49 days</b> (not 19), reached enlightenment, and taught the Eightfold Path to nirvana.</li>\n<li><b>Sharia:</b> based on the Quran <b>and</b> the Hadith (the sayings and actions of Muhammad).</li>\n<li><b>Adherents:</b> followers of <b>any</b> religion, not only ancestral ones.</li>\n<li><b>Relocation diffusion:</b> people physically <b>move</b> and bring the trait with them.</li>\n<li><b>Hinduism:</b> concentrated in <b>South Asia</b> (India and Nepal), not all of Asia.</li>\n<li><b>Horizontal / vertical diversity:</b> kept as defined in your class notes. Check with your teacher, because other sources don\u2019t define these terms the same way.</li>\n</ul></div>"+[['Culture & landscape','cul'],['Diffusion','dif'],['Effects of diffusion & language contact','eff'],['Religion & language','rel']].map(([h,g])=>`<h4>${h}</h4>`+TERMS.filter(x=>x.g===g).map(x=>`<div class="def"><b>${esc(x.t)}</b><span>${esc(x.d)}</span></div>`).join('')).join('')+
 `<h4>Major religions</h4><div class="tbl"><table><thead><tr><th>Religion</th><th>Type</th><th>Hearth</th><th>How it spread</th><th>Branches / notes</th><th>Holy places</th></tr></thead><tbody>${RELIGIONS.map(r=>`<tr><td>${esc(r.n)}</td><td>${esc(r.type)}</td><td>${esc(r.hearth)}</td><td>${esc(r.spread)}</td><td>${esc(r.branches)}</td><td>${esc(r.holy)}</td></tr>`).join('')}</tbody></table></div>
 <h4>Indo-European branches</h4><div class="def"><b>Germanic</b><span>English, German, Dutch, Swedish</span></div><div class="def"><b>Romance</b><span>Spanish, French, Italian, Portuguese, Romanian (from Latin)</span></div><div class="def"><b>Balto-Slavic</b><span>Russian, Polish, Ukrainian</span></div><div class="def"><b>Indo-Iranian</b><span>Hindi, Bengali, Urdu, Persian (Farsi). Most speakers of any branch.</span></div>
 <h4>Indo-European hearth theories</h4><div class="def"><b>Kurgan hypothesis</b><span>Spread from the steppes north of the Black and Caspian Seas around 4000–3000 BCE by horse-riding warriors (conquest).</span></div><div class="def"><b>Anatolian hypothesis</b><span>Spread from Anatolia (Turkey) around 7000–6000 BCE as farming spread (agriculture, peacefully).</span></div>
@@ -355,6 +399,30 @@ const CONCEPTS=[
  ['Which is an example of a sacred space?','The Ganges River for Hindus',['A shopping mall','A highway interchange','An office park']],
  ['Languages become extinct mainly because…','speakers switch to a more dominant language',['governments ban all languages','they become too difficult','they have no written form']],
  ['Hebrew is a famous example of a language that was…','revived after nearly dying out',['invented as a pidgin','spread by the Kurgan warriors','created by stimulus diffusion']],
+ ["Where do Sikhs worship?","In a gurdwara",["In a synagogue", "In a stupa", "In a mosque"]],
+ ["Buddhist architecture is often built around structures that hold relics. What are they called?","Stupas",["Steeples", "Gurdwaras", "Minarets"]],
+ ["Where do Jews worship?","In a synagogue",["In a gurdwara", "In a stupa", "In a temple to many deities"]],
+ ["Why do many Northern European churches have steep, slanted roofs?","So snow slides off",["To show Roman influence", "To hold relics", "To face Mecca"]],
+ ["Which religion traditionally practices cremation?","Hinduism",["Judaism", "Islam", "Christianity"]],
+ ["In Buddhism, what leads a person to nirvana?","Following the Eightfold Path",["Pilgrimage to Mecca", "The caste system", "Following the Torah"]],
+ ["Why do all Sikhs add the same names (Singh or Kaur)?","To get rid of social class differences",["To honor their hometown", "To show which gurdwara they attend", "To mark their age"]],
+ ["Why can Hinduism be described as both polytheistic and monotheistic?","It worships many deities, but many see them as forms of one god",["It switched from one god to many", "Half of Hindus believe in one god", "It has no gods at all"]],
+ ["About what share of the world speaks an Indo-European language?","About half",["About 10%", "Almost everyone", "About a quarter"]],
+ ["Why is religion said to resist distance decay?","People keep their religion even when they move far from its hearth",["Religions only exist near their hearths", "Religion spreads faster over long distances", "Distance makes religions disappear"]],
+ ["What is the difference between an ethnic island and an ethnic enclave?","Ethnic islands are rural; ethnic enclaves are usually urban",["Ethnic islands are bigger", "Ethnic enclaves are only for immigrants", "There is no difference"]],
+ ["The Jewish diaspora is an example of…","a group scattered from its homeland to many places",["a group that never left its homeland", "a religion seeking converts", "a pidgin language"]],
+ ["A shared national language that brings a country together is a…","centripetal force",["centrifugal force", "taboo", "blue law"]],
+ ["Religious conflict that splits a country apart is a…","centrifugal force",["centripetal force", "charter group", "sociofact"]],
+ ["A family, a school, or a government is an example of a…","sociofact",["mentifact", "artifact", "taboo"]],
+ ["A religious belief or a value is an example of a…","mentifact",["artifact", "sociofact", "ethnic island"]],
+ ["A tool or a piece of clothing is an example of a…","artifact",["mentifact", "sociofact", "toponym"]],
+ ["A town starts a festival and craft brewery to celebrate its local history. This is…","neolocalism",["placelessness", "assimilation", "nativism"]],
+ ["Laws banning alcohol sales on Sundays are called…","blue laws",["Sharia", "taboos", "theocracies"]],
+ ["Is Spanglish a true pidgin language?","No. It mixes two languages people already speak; a pidgin is a simplified trade language with no native speakers",["Yes, because it mixes English and Spanish", "Yes, because it has native speakers", "No, because it is a creole"]],
+ ["How long did the Buddha meditate under the Bodhi tree before reaching enlightenment?","49 days",["19 days", "7 days", "40 years"]],
+ ["Sharia is based on…","the Quran and the Hadith (teachings of Muhammad)",["only the Torah", "the Vedas", "the Eightfold Path"]],
+ ["What are adherents?","Followers of any religion",["Only followers of ethnic religions", "Religious leaders who run a theocracy", "People who reject religion"]],
+ ["Where is Hinduism mainly concentrated?","South Asia (India and Nepal)",["East Asia", "The Middle East", "Southeast Asia"]],
 ];
 function mcConcept(){const [q,a,w]=pick(CONCEPTS);return{label:'Concepts',prompt:esc(q),choices:shuffle([a,...w]),answer:a};}
 const MCF={mix:'Mixed',vocab:'Vocab',dif:'Diffusion',eff:'Effects',rl:'Religion & language'};
@@ -516,5 +584,4 @@ document.addEventListener('keydown',e=>{if(e.target.matches('input,textarea'))re
 MC.start();CL.start();buildVocab();RL.start();renderExpChips();renderExp();
 const t0=store.get('tab','mc');showTab(TABS.includes(t0)?t0:'mc');
 </script>
-</body>
-</html>
+</body></html>
